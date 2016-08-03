@@ -1,10 +1,6 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
-t=0
-s=0
-d=1
-fl=15
 function make_bird()
  local spd=flr(rnd(4))-2
  local x=-8
@@ -25,8 +21,11 @@ function make_bird()
   },
   sprite=function(self)
    local f=max(1,self.anim.duration/self.anim.frames)
-   local s=min(flr(self.t/f),2)
-   return s
+   return min(flr(self.t/f),2)
+  end,
+  die=function(self)
+    del(birds, self)
+    add(birds, make_bird())
   end,
   update=function(self)
    self.x+=self.spd
@@ -37,6 +36,10 @@ function make_bird()
     self.anim.dir=-1
    elseif self.t==0 then
     self.anim.dir=1
+   end
+
+   if self.x>128+16 or self.x<-16 then
+    self:die()
    end
   end,
   draw=function(self)
