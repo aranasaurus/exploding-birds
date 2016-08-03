@@ -19,7 +19,7 @@ function make_bird()
   spd=spd,
   t=0,
   anim={
-   duration=14+spd,
+   duration=14-(abs(spd)*2),
    frames=3,
    dir=1
   },
@@ -33,7 +33,7 @@ function make_bird()
   end,
   update=function(self)
    self.x+=self.spd
-   self.y+=cos(self.x/127)/4
+   self.y+=cos(self.x/127)/(6-abs(self.spd))
 
    self.t+=self.anim.dir
    if self.t==self.anim.duration then
@@ -53,7 +53,7 @@ function make_bird()
  return b
 end
 function _init()
- for i=1,13 do
+ for i=1,2 do
   add(birds, make_bird())
  end
 end
