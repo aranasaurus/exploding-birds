@@ -1,8 +1,12 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
+birds={}
 function make_bird()
- local spd=flr(rnd(4))-2
+ local spd=0
+ while -0.5<spd and spd<0.5 do
+  spd=flr(rnd(4))-2
+ end
  local x=-8
  if spd<0 then
   x=127+flr(rnd(16))
@@ -11,7 +15,7 @@ function make_bird()
  end
  local b={
   x=x,
-  y=32+flr(rnd(127-32)),
+  y=rnd(127),
   spd=spd,
   t=0,
   anim={
@@ -48,7 +52,6 @@ function make_bird()
  }
  return b
 end
-birds={}
 function _init()
  for i=1,13 do
   add(birds, make_bird())
