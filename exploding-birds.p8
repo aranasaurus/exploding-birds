@@ -5,30 +5,67 @@ t=0
 s=0
 d=1
 fl=15
+function make_bird()
+ local spd=flr(rnd(4))-2
+ local x=-8
+ if spd<0 then
+  x=127+flr(rnd(16))
+ else
+  x=-16+flr(rnd(16))
+ end
+ local b={
+  x=x,
+  y=32+flr(rnd(127-32)),
+  spd=spd,
+  t=0,
+  anim={
+   duration=14+spd,
+   frames=3,
+   dir=1
+  },
+  sprite=function(self)
+   local f=max(1,self.anim.duration/self.anim.frames)
+   local s=min(flr(self.t/f),2)
+   return s
+  end,
+  update=function(self)
+   self.x+=self.spd
+   self.y+=cos(self.x/127)/4
+
+   self.t+=self.anim.dir
+   if self.t==self.anim.duration then
+    self.anim.dir=-1
+   elseif self.t==0 then
+    self.anim.dir=1
+   end
+  end,
+  draw=function(self)
+   spr(self:sprite(),self.x,self.y,1,1,self.spd<0)
+  end
+ }
+ return b
+end
+birds={}
+function _init()
+ for i=1,13 do
+  add(birds, make_bird())
+ end
+end
 function _update()
  _update60()
  _update60()
 end
 function _update60()
- if btnp(2) then
-  fl+=1
- elseif btnp(3) then
-  fl-=1
- end
- t+=d
- local f=max(1,fl/3)
- s=min(flr(t/f),2)
- if t==fl then
-  d=-1
- elseif t==0 then
-  d=1
+ for b in all(birds) do
+  b:update()
  end
 end
 function _draw()
  cls()
  rectfill(0,0,128,128,12)
- spr(s,64,64)
- print(fl,1,1,1)
+ for b in all(birds) do
+  b:draw()
+ end
 end
 __gfx__
 00000500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
