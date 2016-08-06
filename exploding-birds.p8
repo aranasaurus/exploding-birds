@@ -55,30 +55,38 @@ end
 clouds={}
 c_start=64
 c_count=4
-function make_cloud(big)
+function make_cloud(big,left,top)
  local minw, minh, maxw, maxh, spd_mod
  if big then
   minw=4
-  minh=2
+  minh=4
   maxw=12
-  maxh=6
+  maxh=8
   spd_mod=0.075
  else
   minw=2
   minh=1
-  maxw=4
+  maxw=3
   maxh=2
   spd_mod=0.66
  end
  local c={
   spd_mod=spd_mod,
+  top=top,
+  big=big,
   reset=function(self)
-   self.w=8*minw+flr(rnd(maxw*8))
    self.h=8*minh+flr(rnd(maxh*8))
+   self.w=max(self.h+8,8*minw+flr(rnd(maxw*8)))
    self.s=c_start+flr(rnd(c_count))
    self.spd=0
    while self.spd==0 do
-    self.spd=rnd(1)-1
+    self.spd=rnd(1)
+   end
+   self.y=rnd(127-(self.h/2))-self.h/2
+   if self.top then
+    self.y=flr(self.y/2)
+   else
+    self.y=max(self.y+self.h/2,56)
    end
   end,
   draw=function(self)
@@ -89,33 +97,28 @@ function make_cloud(big)
    palt()
   end,
   update=function(self)
-   self.x+=self.spd*self.spd_mod
-   if self.spd<0 and self.x<-self.w then
+   self.x-=self.spd*self.spd_mod
+   if self.x<-self.w then
     self.x=127+8
-    self.y=flr(rnd(127-self.h))
-    self:reset()
-   elseif self.spd>0 and self.x>127 then
-    self.x=-self.w-8
-    self.y=flr(rnd(127-self.h))
     self:reset()
    end
   end
  }
  c:reset()
- c.x=flr(rnd(127-c.w))
- c.y=flr(rnd(127-c.h))
+ c.x=flr(rnd(127))
+ if left then
+  c.x=flr(c.x/2)
+ end
  return c
 end
 function _init()
  for i=1,13 do
   add(birds, make_bird())
  end
- for i=1,2 do
-  local c=make_cloud(true)
-  add(clouds,c)
- end
+ add(clouds,make_cloud(true,left,top))
+ add(clouds,make_cloud(true,not left,not top))
  for i=1,4 do
-  local c=make_cloud(false)
+  local c=make_cloud(false,i%2==0,i>2)
   add(clouds,c)
  end
 end
