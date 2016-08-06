@@ -55,15 +55,31 @@ end
 clouds={}
 c_start=64
 c_count=4
-function make_cloud(minw, minh, maxw, maxh)
- -- TODO: Make this able to create bigger clouds for bg vs smaller for fg. Then create multiple layers of them and scroll them paralax style.
+function make_cloud(big)
+ local minw, minh, maxw, maxh, spd_mod
+ if big then
+  minw=4
+  minh=2
+  maxw=12
+  maxh=6
+  spd_mod=0.075
+ else
+  minw=2
+  minh=1
+  maxw=4
+  maxh=2
+  spd_mod=0.66
+ end
  local c={
-  layer=0,
+  spd_mod=spd_mod,
   reset=function(self)
    self.w=8*minw+flr(rnd(maxw*8))
    self.h=8*minh+flr(rnd(maxh*8))
    self.s=c_start+flr(rnd(c_count))
-   self.spd_mod=rnd(1.5)--3)-1.5
+   self.spd=0
+   while self.spd==0 do
+    self.spd=rnd(1)-1
+   end
   end,
   draw=function(self)
    palt(12,true)
@@ -73,15 +89,12 @@ function make_cloud(minw, minh, maxw, maxh)
    palt()
   end,
   update=function(self)
-   if self.spd_mod==0 then
-    self.spd_mod=rnd(4)---2
-   end
-   self.x+=(0.015+self.layer)*self.spd_mod
-   if self.spd_mod<0 and self.x<-self.w then
+   self.x+=self.spd*self.spd_mod
+   if self.spd<0 and self.x<-self.w then
     self.x=127+8
     self.y=flr(rnd(127-self.h))
     self:reset()
-   elseif self.spd_mod>0 and self.x>127 then
+   elseif self.spd>0 and self.x>127 then
     self.x=-self.w-8
     self.y=flr(rnd(127-self.h))
     self:reset()
@@ -98,13 +111,11 @@ function _init()
   add(birds, make_bird())
  end
  for i=1,2 do
-  local c=make_cloud(4,2,8,3)
-  c.layer=0
+  local c=make_cloud(true)
   add(clouds,c)
  end
  for i=1,4 do
-  local c=make_cloud(2,1,3,1)
-  c.layer=0.25
+  local c=make_cloud(false)
   add(clouds,c)
  end
 end
