@@ -13,11 +13,20 @@ function make_bird()
  else
   x=-16+flr(rnd(16))
  end
+ local c0=12
+ local c1=12
+ while c0==9 or c0==12 or c0==6 or c0==7 do
+  c0=flr(rnd(15))
+ end
+ while c1==c0 or c1==9 or c1==12 do
+  c1=flr(rnd(15))
+ end
  local b={
   x=x,
   y=rnd(127),
   spd=spd,
   t=0,
+  c={c0, c1},
   anim={
    duration=14-(abs(spd)*2),
    frames=3,
@@ -47,7 +56,10 @@ function make_bird()
    end
   end,
   draw=function(self)
+   pal(5,self.c[1])
+   pal(4,self.c[2])
    spr(self:sprite(),self.x,self.y,1,1,self.spd<0)
+   pal()
   end
  }
  return b
