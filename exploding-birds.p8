@@ -2,29 +2,12 @@ pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
 -- Generic Helpers (start here when you need to reduce token size)
-function _btn(b,p)
- return p and btnp(b) or btn(b)
-end
-ctrl={
- left=function(p)
-  return _btn(0,p)
- end,
- right=function(p)
-  return _btn(1,p)
- end,
- up=function(p)
-  return _btn(2,p)
- end,
- down=function(p)
-  return _btn(3,p)
- end,
- b=function(p)
-  return _btn(4,p)
- end,
- a=function(p)
-  return _btn(5,p)
- end
-}
+left=0
+right=1
+up=2
+down=3
+b_btn=4
+a_btn=5
 black=0
 dark_blue=1
 dark_red=2
@@ -167,20 +150,52 @@ function make_cloud(big,left,top)
 end
 
 -- Player
+rice={}
 player={
  x=59,
  y=59,
+ vx=0,
+ vy=0,
  c={red,dark_red},
+ shoot_rice=function(self,x,y)
+  local vx=x<0 and -3 or 3
+  local vy=y<0 and -3 or 3
+  local b={
+   x=self.x+4,
+   y=self.y+2,
+   vx=vx,
+   vy=vy,
+   update=function(self)
+    self.x+=self.vx
+    self.y+=self.vy
+   end,
+   draw=function(self)
+    line(self.x,self.y,self.x+self.vx,self.y+self.vy,white)
+   end
+  }
+  add(rice,b)
+ end,
  update=function(self)
-  if ctrl.left() then self.x-=1 end
-  if ctrl.right() then self.x+=1 end
-  if ctrl.up() then self.y-=1 end
-  if ctrl.down() then self.y+=1 end
+  local dir={0,0}
+  if btn(left) then dir[1]-=1 end
+  if btn(right) then dir[1]+=1 end
+  if btn(up) then dir[2]-=1 end
+  if btn(down) then dir[2]+=1 end
+  self.x+=dir[1]
+  self.y+=dir[2]
+
+  for b in all(rice) do
+   b:update()
+  end
+  if btnp(4) then self:shoot_rice(dir[1],dir[2]) end
  end,
  draw=function(self)
   pal(dark_grey,self.c[1])
   pal(dark_blue,self.c[2])
   spr(48,self.x,self.y)
+  for b in all(rice) do
+   b:draw()
+  end
  end
 }
 
