@@ -1,6 +1,48 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
+-- Generic Helpers (start here when you need to reduce token size)
+function _btn(b,p)
+ return p and btnp(b) or btn(b)
+end
+ctrl={
+ left=function(p)
+  return _btn(0,p)
+ end,
+ right=function(p)
+  return _btn(1,p)
+ end,
+ up=function(p)
+  return _btn(2,p)
+ end,
+ down=function(p)
+  return _btn(3,p)
+ end,
+ b=function(p)
+  return _btn(4,p)
+ end,
+ a=function(p)
+  return _btn(5,p)
+ end
+}
+black=0
+dark_blue=1
+dark_red=2
+dark_green=3
+brown=4
+dark_grey=5
+grey=6
+white=7
+red=8
+orange=9
+yellow=10
+green=11
+blue=12
+mid_grey=13
+pink=14
+peach=15
+
+-- Game Objects
 birds={}
 function make_bird()
  local spd=0
@@ -13,12 +55,12 @@ function make_bird()
  else
   x=-16+flr(rnd(16))
  end
- local c0=12
- local c1=12
- while c0==9 or c0==12 or c0==6 or c0==7 do
+ local c0=blue
+ local c1=blue
+ while c0==orange or c0==blue or c0==grey or c0==white do
   c0=flr(rnd(15))
  end
- while c1==c0 or c1==9 or c1==12 do
+ while c1==c0 or c1==orange or c1==blue do
   c1=flr(rnd(15))
  end
  local b={
@@ -56,8 +98,8 @@ function make_bird()
    end
   end,
   draw=function(self)
-   pal(5,self.c[1])
-   pal(4,self.c[2])
+   pal(dark_grey,self.c[1])
+   pal(brown,self.c[2])
    spr(self:sprite(),self.x,self.y,1,1,self.spd<0)
    pal()
   end
@@ -102,7 +144,7 @@ function make_cloud(big,left,top)
    end
   end,
   draw=function(self)
-   palt(12,true)
+   palt(blue,true)
    local row=flr(self.s/16)
    local col=self.s%16
    sspr(col*8,row*8,8,8,self.x,self.y,self.w,self.h)
@@ -123,42 +165,26 @@ function make_cloud(big,left,top)
  end
  return c
 end
-function b(bb,p)
- return p and btnp(bb) or btn(bb)
-end
-c={
- left=function(p)
-  return b(0,p)
- end,
- right=function(p)
-  return b(1,p)
- end,
- up=function(p)
-  return b(2,p)
- end,
- down=function(p)
-  return b(3,p)
- end,
- b=function(p)
-  return b(4,p)
- end,
- a=function(p)
-  return b(5,p)
- end
-}
+
+-- Player
 player={
  x=59,
  y=59,
+ c={red,dark_red},
  update=function(self)
-  if c.left() then self.x-=1 end
-  if c.right() then self.x+=1 end
-  if c.up() then self.y-=1 end
-  if c.down() then self.y+=1 end
+  if ctrl.left() then self.x-=1 end
+  if ctrl.right() then self.x+=1 end
+  if ctrl.up() then self.y-=1 end
+  if ctrl.down() then self.y+=1 end
  end,
  draw=function(self)
+  pal(dark_grey,self.c[1])
+  pal(dark_blue,self.c[2])
   spr(48,self.x,self.y)
  end
 }
+
+-- Game Logic
 function _init()
  for i=1,13 do
   add(birds, make_bird())
@@ -185,7 +211,7 @@ function _update60()
 end
 function _draw()
  cls()
- rectfill(0,0,128,128,12)
+ rectfill(0,0,128,128,blue)
  for c in all(clouds) do
   c:draw()
  end
