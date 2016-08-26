@@ -48,10 +48,10 @@ function make_bird()
  end
  local b={
   x=x,
-  y=rnd(127),
+  y=rnd(97),
   spd=spd,
   t=0,
-  c={c0, c1},
+  c={c0,c1},
   anim={
    duration=14-(abs(spd)*2),
    frames=3,
@@ -66,6 +66,9 @@ function make_bird()
     add(birds,make_bird())
   end,
   update=function(self)
+   if self.x>127 or self.x<-8 then
+    self.spd*=-1
+   end
    self.x+=self.spd
    self.y+=cos(self.x/127)/(6-abs(self.spd))
 
@@ -76,9 +79,6 @@ function make_bird()
     self.anim.dir=1
    end
 
-   if self.x>128+16 or self.x<-16 then
-    self:die()
-   end
   end,
   draw=function(self)
    pal(dark_grey,self.c[1])
@@ -89,9 +89,10 @@ function make_bird()
  }
  return b
 end
-clouds={}
-c_start=64
-c_count=4
+clouds={
+ start=64,
+ count=4
+}
 function make_cloud(big,left,top)
  local minw, minh, maxw, maxh, spd_mod
  if big then
@@ -114,7 +115,7 @@ function make_cloud(big,left,top)
   reset=function(self)
    self.h=8*minh+flr(rnd(maxh*8))
    self.w=max(self.h+8,8*minw+flr(rnd(maxw*8)))
-   self.s=c_start+flr(rnd(c_count))
+   self.s=clouds.start+flr(rnd(clouds.count))
    self.spd=0
    while self.spd==0 do
     self.spd=rnd(1)
@@ -153,41 +154,48 @@ end
 rice={}
 player={
  x=59,
- y=59,
- vx=0,
- vy=0,
+ y=110,
+ spd=1,
+ cd=0,
  c={red,dark_red},
- shoot_rice=function(self,x,y)
-  local vx=x<0 and -3 or 3
-  local vy=y<0 and -3 or 3
+ shoot_rice=function(self)
+  if self.cd>0 then
+   self.cd-=1
+   return
+  end
   local b={
-   x=self.x+4,
+   x=self.x+3,
    y=self.y+2,
-   vx=vx,
-   vy=vy,
+   spd=3,
    update=function(self)
-    self.x+=self.vx
-    self.y+=self.vy
+    self.y-=self.spd
+    if self.y<-1 then
+     del(rice,self)
+    end
    end,
    draw=function(self)
-    line(self.x,self.y,self.x+self.vx,self.y+self.vy,white)
+    line(self.x,self.y,self.x,self.y-self.spd,white)
+    pset(self.x,self.y,grey)
    end
   }
   add(rice,b)
+  self.cd=20
  end,
  update=function(self)
-  local dir={0,0}
-  if btn(left) then dir[1]-=1 end
-  if btn(right) then dir[1]+=1 end
-  if btn(up) then dir[2]-=1 end
-  if btn(down) then dir[2]+=1 end
-  self.x+=dir[1]
-  self.y+=dir[2]
+  if btn(left) then self.x-=self.spd end
+  if btn(right) then self.x+=self.spd end
+  if btn(up) then self.y-=self.spd end
+  if btn(down) then self.y+=self.spd end
+
+  if self.y<100 then self.y=100 end
+  if self.y>119 then self.y=119 end
+  if self.x>123 then self.x=123 end
+  if self.x<3 then self.x=3 end
 
   for b in all(rice) do
    b:update()
   end
-  if btnp(4) then self:shoot_rice(dir[1],dir[2]) end
+  if btn(b_btn) then self:shoot_rice() end
  end,
  draw=function(self)
   pal(dark_grey,self.c[1])
