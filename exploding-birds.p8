@@ -25,6 +25,7 @@ mid_grey=13
 pink=14
 peach=15
 
+horizon=100
 -- Game Objects
 birds={}
 function make_bird()
@@ -48,7 +49,7 @@ function make_bird()
  end
  local b={
   x=x,
-  y=rnd(97),
+  y=rnd(horizon-3),
   spd=spd,
   t=0,
   c={c0,c1},
@@ -120,11 +121,12 @@ function make_cloud(big,left,top)
    while self.spd==0 do
     self.spd=rnd(1)
    end
-   self.y=rnd(127-(self.h/2))-self.h/2
+   --self.y=rnd(127-(self.h/2))-self.h/2
+   self.y=rnd(horizon-flr(self.h/2))
    if self.top then
     self.y=flr(self.y/2)
    else
-    self.y=max(self.y+self.h/2,56)
+    self.y=max(self.y,flr(horizon/2))
    end
   end,
   draw=function(self)
@@ -187,7 +189,7 @@ player={
   if btn(up) then self.y-=self.spd end
   if btn(down) then self.y+=self.spd end
 
-  if self.y<100 then self.y=100 end
+  if self.y<horizon-4 then self.y=horizon-4 end
   if self.y>119 then self.y=119 end
   if self.x>123 then self.x=123 end
   if self.x<3 then self.x=3 end
@@ -234,10 +236,11 @@ function _update60()
 end
 function _draw()
  cls()
- rectfill(0,0,128,128,blue)
+ rectfill(0,0,128,horizon,blue)
  for c in all(clouds) do
   c:draw()
  end
+ rectfill(0,horizon,128,128,dark_green)
  for b in all(birds) do
   b:draw()
  end
