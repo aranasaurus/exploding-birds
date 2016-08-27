@@ -121,19 +121,26 @@ function make_cloud(big,left,top)
    while self.spd==0 do
     self.spd=rnd(1)
    end
-   --self.y=rnd(127-(self.h/2))-self.h/2
-   self.y=rnd(horizon-flr(self.h/2))
-   if self.top then
+   self.y=rnd(127)
+   if self.top and not self.big then
     self.y=flr(self.y/2)
-   else
-    self.y=max(self.y,flr(horizon/2))
+   elseif self.big then
+    while self.y<-self.h/2 do
+     y=rnd(horizon-self.h/2)
+    end
    end
   end,
   draw=function(self)
    palt(blue,true)
    local row=flr(self.s/16)
    local col=self.s%16
-   sspr(col*8,row*8,8,8,self.x,self.y,self.w,self.h)
+   local y=self.y-self.h/2
+   if self.big then
+    if y<-self.h/2 then
+     y=-self.h/2
+    end
+   end
+   sspr(col*8,row*8,8,8,self.x-self.w/2,y,self.w,self.h)
    palt()
   end,
   update=function(self)
@@ -214,8 +221,7 @@ function _init()
  for i=1,13 do
   add(birds, make_bird())
  end
- add(clouds,make_cloud(true,left,top))
- add(clouds,make_cloud(true,not left,not top))
+ add(clouds,make_cloud(true))
  for i=1,4 do
   local c=make_cloud(false,i%2==0,i>2)
   add(clouds,c)
