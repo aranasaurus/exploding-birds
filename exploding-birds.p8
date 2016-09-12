@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 8
+version 9
 __lua__
 -- Generic Helpers (start here when you need to reduce token size)
 left=0
@@ -40,10 +40,10 @@ function make_bird()
  if spd<0 then x=127 end
  local c0=blue
  local c1=blue
- while c0==orange or c0==blue or c0==grey or c0==white do
+ while c0==orange or c0==blue or c0==grey or c0==white or c0==dark_green do
   c0=flr(rnd(15))
  end
- while c1==c0 or c1==orange or c1==blue do
+ while c1==c0 or c1==orange or c1==blue or c1==dark_green do
   c1=flr(rnd(15))
  end
  local b={
@@ -61,7 +61,6 @@ function make_bird()
   state=1,
   sprite=function(self)
    local f=max(1,flr(self.anim.duration/self.anim.frames))
-   printh(f .. ", " .. self.t)
    return min(self.anim.start_frame+flr(self.t/f),self.anim.start_frame+self.anim.frames-1)
   end,
   bloat=function(self)
@@ -126,7 +125,6 @@ function make_bird()
    else
     sspr(self:sprite()*8,0,8,8,self.x,self.y,8,10,self.spd<0)
    end
-   printh(self:sprite())
    pal()
   end
  }
@@ -266,10 +264,6 @@ function _init()
   local c=make_cloud(false,i%2==0,i>2)
   add(clouds,c)
  end
-end
-function _update()
- _update60()
- _update60()
 end
 function _update60()
  for b in all(birds) do
