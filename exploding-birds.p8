@@ -65,11 +65,18 @@ function make_bird()
   end,
   bloat=function(self)
    if self.state==1 then
+    player.score+=1
+    player.birds_fed+=1
+
     self.state=2
     self.anim.start_frame=3
     self.anim.duration*=0.5
     self.spd*=0.76
    elseif self.state==2 then
+    player.birds_killed+=1
+    player.birds_fed-=1
+    player.score+=2
+
     self.state=3
     self.anim.start_frame=6
     self.anim.frames=1
@@ -207,6 +214,9 @@ player={
  y=110,
  spd=1,
  cd=0,
+ score=0,
+ birds_killed=0,
+ birds_fed=0,
  c={red,dark_red},
  rice=max_rice,
  shoot_rice=function(self)
@@ -264,6 +274,11 @@ player={
   for b in all(rice) do
    b:draw()
   end
+
+  color(dark_blue)
+  print("score: " .. player.score, 1, 1)
+  print("fed: " .. player.birds_fed, 48, 1)
+  print("killed: " .. player.birds_killed, 84, 1)
  end
 }
 
