@@ -26,8 +26,11 @@ pink=14
 peach=15
 
 horizon=100
+g_mod=0.8
+g=((9.8*48)/60/60)*g_mod
 -- game objects
 birds={}
+poops={}
 max_birds=10
 max_spd=3.25
 min_spd=0.25
@@ -59,6 +62,7 @@ function make_bird()
    dir=1
   },
   state=1,
+  cd=0,
   sprite=function(self)
    local f=max(1,flr(self.anim.duration/self.anim.frames))
    return min(self.anim.start_frame+flr(self.t/f),self.anim.start_frame+self.anim.frames-1)
@@ -72,6 +76,7 @@ function make_bird()
     self.anim.start_frame=3
     self.anim.duration*=0.5
     self.spd*=0.76
+    self.cd=0
    elseif self.state==2 then
     player.birds_killed+=1
     player.birds_fed-=1
@@ -122,6 +127,39 @@ function make_bird()
       del(rice,b)
      end
     end
+   end
+   if self.cd==0 and self.state<3 then
+    if rnd()<self.state*0.2 then
+     add(poops,{
+      x=self.x+4+self.anim.dir,
+      y=self.y+self.state+1,
+      spd={self.spd*g_mod, 0.0},
+      update=function(self)
+       self.x+=self.spd[1]
+       self.y+=self.spd[2]
+       if self.y>128 then
+        player.poops_avoided+=1
+        del(poops,self)
+       elseif self.y<=player.y+8 and self.y+3>=player.y+player.rice_offset+1 and abs((player.x+4)-self.x)<=4 then
+        player.rice-=5
+        del(poops,self)
+       end
+       self.spd[2]+=g
+      end,
+      draw=function(self)
+       pset(self.x,self.y,white)
+       pset(self.x,self.y+1,grey)
+       pset(self.x,self.y+2,dark_grey)
+      end
+     })
+     if self.state==1 then
+      self.cd=120
+     else
+      self.cd=20
+     end
+    end
+   else
+    self.cd-=1
    end
   end,
   draw=function(self)
@@ -217,10 +255,12 @@ player={
  score=0,
  birds_killed=0,
  birds_fed=0,
+ poops_avoided=0,
  c={red,dark_red},
  rice=max_rice,
+ rice_offset=0,
  shoot_rice=function(self)
-  if self.rice==0 then
+  if self.rice<=0 then
    -- game over, man
    return
   end
@@ -261,19 +301,20 @@ player={
   for b in all(rice) do
    b:update()
   end
+  self.rice_offset=flr(((max_rice-self.rice)*3)/max_rice)
   if btn(b_btn) then self:shoot_rice() end
  end,
  draw=function(self)
   pal(dark_grey,self.c[1])
   pal(dark_blue,self.c[2])
-  if self.rice>0 then
-   local p=flr(((max_rice-self.rice)*3)/max_rice)
-   sspr(8,24,8,4-p,self.x,self.y+p)
-  end
+  -- draw rice in the bowl
+  sspr(8,24,8,4-self.rice_offset,self.x,self.y+self.rice_offset)
+  -- draw the bowl
   spr(48,self.x,self.y)
   for b in all(rice) do
    b:draw()
   end
+  pal()
 
   color(dark_blue)
   print("score: " .. player.score, 1, 1)
@@ -295,6 +336,9 @@ function _update60()
  for b in all(birds) do
   b:update()
  end
+ for p in all(poops) do
+  p:update()
+ end
  for c in all(clouds) do
   c:update()
  end
@@ -310,6 +354,9 @@ function _draw()
   c:draw()
  end
  rectfill(0,horizon,128,128,dark_green)
+ for p in all(poops) do
+  p:draw()
+ end
  for b in all(birds) do
   b:draw()
  end
