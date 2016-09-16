@@ -332,6 +332,10 @@ function _init()
   add(clouds,c)
  end
 end
+function _update()
+ _update60()
+ _update60()
+end
 function _update60()
  for b in all(birds) do
   b:update()
