@@ -93,6 +93,64 @@ function make_bird()
     add(birds,make_bird())
   end,
   death_tick=0,
+  poop=function(self)
+   add(poops,{
+    x=self.x+4+self.anim.dir,
+    y=self.y+self.state+1,
+    z=127-flr(rnd(128-horizon)),
+    falling=true,
+    spd={self.spd*g_mod,0.0},
+    pick_color=function()
+     local c=rnd()
+     if c<0.1 then
+      return white
+     elseif c<0.55 then
+      return grey
+     else
+      return dark_grey
+     end
+    end,
+    update=function(self)
+     if not self.falling then
+      return
+     end
+     self.x+=self.spd[1]
+     self.y+=self.spd[2]
+     if self.y<=player.y+8 and self.y+3>=player.y+player.rice_offset+1 and abs((player.x+4)-self.x)<=4 then
+      player.rice-=5
+      del(poops,self)
+     elseif self.y>=self.z then
+      player.poops_avoided+=1
+      player.score+=0.3
+      self.falling=false
+      self.c[1]=self.pick_color()
+      self.c[2]=self.pick_color()
+      self.c[3]=self.pick_color()
+      while self.c[1]==self.c[2] and self.c[2]==self.c[3] do
+       self.c[2]=self.pick_color()
+      end
+     end
+     self.spd[2]+=g
+    end,
+    c={white,grey,dark_grey},
+    draw=function(self)
+     if self.falling then
+      pset(self.x,self.y,self.c[1])
+      pset(self.x,self.y+1,self.c[2])
+      pset(self.x,self.y+2,self.c[3])
+     else
+      pset(self.x-1,self.y,self.c[1])
+      pset(self.x,self.y,self.c[2])
+      pset(self.x+1,self.y,self.c[3])
+     end
+    end
+   })
+   if self.state==1 then
+    self.cd=120
+   else
+    self.cd=20
+   end
+  end,
   update=function(self)
    self.t+=self.anim.dir
    if self.t>=self.anim.duration then
@@ -131,34 +189,7 @@ function make_bird()
    end
    if self.cd==0 and self.state<3 then
     if rnd()<self.state*0.2 then
-     add(poops,{
-      x=self.x+4+self.anim.dir,
-      y=self.y+self.state+1,
-      spd={self.spd*g_mod, 0.0},
-      update=function(self)
-       self.x+=self.spd[1]
-       self.y+=self.spd[2]
-       if self.y>128 then
-        player.poops_avoided+=1
-        player.score+=0.3
-        del(poops,self)
-       elseif self.y<=player.y+8 and self.y+3>=player.y+player.rice_offset+1 and abs((player.x+4)-self.x)<=4 then
-        player.rice-=5
-        del(poops,self)
-       end
-       self.spd[2]+=g
-      end,
-      draw=function(self)
-       pset(self.x,self.y,white)
-       pset(self.x,self.y+1,grey)
-       pset(self.x,self.y+2,dark_grey)
-      end
-     })
-     if self.state==1 then
-      self.cd=120
-     else
-      self.cd=20
-     end
+     self:poop()
     end
    else
     self.cd-=1
