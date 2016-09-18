@@ -68,8 +68,8 @@ function make_bird()
    return min(self.anim.start_frame+flr(self.t/f),self.anim.start_frame+self.anim.frames-1)
   end,
   bloat=function(self)
+   player.score+=flr(self.state*3.5)
    if self.state==1 then
-    player.score+=1
     player.birds_fed+=1
 
     self.state=2
@@ -80,7 +80,6 @@ function make_bird()
    elseif self.state==2 then
     player.birds_killed+=1
     player.birds_fed-=1
-    player.score+=2
 
     self.state=3
     self.anim.start_frame=6
@@ -89,6 +88,8 @@ function make_bird()
   end,
   die=function(self)
     del(birds,self)
+    -- score more for bloated birds than dead birds
+    player.score+=(self.state%3)*7+3
     add(birds,make_bird())
   end,
   death_tick=0,
@@ -139,6 +140,7 @@ function make_bird()
        self.y+=self.spd[2]
        if self.y>128 then
         player.poops_avoided+=1
+        player.score+=0.3
         del(poops,self)
        elseif self.y<=player.y+8 and self.y+3>=player.y+player.rice_offset+1 and abs((player.x+4)-self.x)<=4 then
         player.rice-=5
@@ -317,7 +319,7 @@ player={
   pal()
 
   color(dark_blue)
-  print("score: " .. player.score, 1, 1)
+  print("score: " .. flr(0.5+player.score), 1, 1)
   print("fed: " .. player.birds_fed, 48, 1)
   print("killed: " .. player.birds_killed, 84, 1)
  end
