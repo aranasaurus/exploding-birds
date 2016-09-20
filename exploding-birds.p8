@@ -289,6 +289,7 @@ player={
  birds_killed=0,
  birds_fed=0,
  poops_avoided=0,
+ rice_fired=0,
  c={red,dark_red},
  rice=max_rice,
  rice_offset=0,
@@ -307,7 +308,7 @@ player={
    spd=3,
    update=function(self)
     self.y-=self.spd
-    if self.y<-1 then
+    if self.y<-2 then
      del(rice,self)
     end
    end,
@@ -319,6 +320,7 @@ player={
   add(rice,b)
   self.cd=10
   self.rice-=1
+  self.rice_fired+=1
  end,
  update=function(self)
   if btn(left) then self.x-=self.spd end
@@ -348,28 +350,42 @@ player={
    b:draw()
   end
   pal()
-
-  color(dark_blue)
-  print("score: " .. flr(0.5+player.score), 1, 1)
-  print("fed: " .. player.birds_fed, 48, 1)
-  print("killed: " .. player.birds_killed, 84, 1)
  end
 }
 
 -- game logic
+game_state=0
 function _init()
+ game_state=0
  add(birds,make_bird())
  add(clouds,make_cloud(true))
  for i=1,4 do
   local c=make_cloud(false,i%2==0,i>2)
   add(clouds,c)
  end
+ -- TODO: instruction screen/press a to start, that kind of thing
+ game_state=1
 end
+--[[
 function _update()
  _update60()
  _update60()
 end
+--]]
 function _update60()
+ if game_state==2 then
+  -- wait until b btn has been released to enable it to reset the game
+  -- player was likely holding it down at the end of the game
+  if not btn(b_btn) then
+   game_state=3
+  end
+  return
+ elseif game_state==3 then
+  if btn(b_btn) or btn(a_btn) then
+   run()
+  end
+  return
+ end
  for b in all(birds) do
   b:update()
  end
@@ -382,6 +398,9 @@ function _update60()
  player:update()
  if #birds<max_birds and rnd(100)<1 then
   add(birds,make_bird())
+ end
+ if player.rice<=0 and #rice==0 then
+  game_state=2
  end
 end
 function _draw()
@@ -398,6 +417,39 @@ function _draw()
   b:draw()
  end
  player:draw()
+ if game_state==1 then
+  color(dark_blue)
+  print("score: " .. flr(0.5+player.score), 42, 1)
+ elseif game_state>=2 then
+  local win={x=16,y=32,c1=white,c2=dark_grey}
+  win.w=128-(2*(win.x-1))
+  win.h=128-(2*(win.y-1))
+  rect(win.x+1,win.y+1,win.x+1+win.w,win.y+1+win.h,dark_red)
+  rectfill(win.x,win.y,win.x+win.w,win.y+win.h,red)
+  local y=win.y+2
+  local x=win.x+4
+  print("game over", x+28, y+1, win.c2)
+  print("game over", x+28, y, win.c1)
+  y+=7
+  x+=28
+  if player.score>=100 then
+   x-=2
+  end
+  print("score: " .. flr(0.5+player.score), x, y+1, win.c2)
+  print("score: " .. flr(0.5+player.score), x, y, win.c1)
+  y+=13
+  x=win.x+4
+  print("shots fired        " .. player.rice_fired, x, y)
+  y+=7
+  print("birds fed          " .. player.birds_fed, x, y)
+  y+=7
+  print("birds killed       " .. player.birds_killed, x, y)
+  y+=7
+  print("poops avoided      " .. player.poops_avoided, x, y)
+
+  print("press button to restart!", x-2, win.y+win.h-6, win.c2)
+  print("press button to restart!", x-2, win.y+win.h-7, win.c1)
+ end
 end
 __gfx__
 00000500000000000000000000000500000000000000000000900000000000000000000000000000000000000000000000000000000000000000000000000000
