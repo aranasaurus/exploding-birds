@@ -93,6 +93,7 @@ function make_bird()
     add(birds,make_bird())
   end,
   death_tick=0,
+  eat_tick=0,
   poop=function(self)
    add(poops,{
     x=self.x+4+self.anim.dir,
@@ -185,6 +186,26 @@ function make_bird()
       self:bloat()
       del(rice,b)
      end
+    end
+   end
+   if self.eat_tick==0 and abs(self.x-player.x)<=8 then
+    -- +5 because the beak is never farther down than 5
+    if self.y+5>=player.y+player.rice_offset then
+     local bx=self.x+8
+     if self.anim.dir==-1 then
+      bx=self.x
+     end
+     if (bx>=player.x+1 and bx<=player.x+7) then
+      self:bloat()
+      self.eat_tick=1
+      player.rice-=1
+     end
+    end
+   elseif self.eat_tick>0 then
+    if self.eat_tick<60 then
+     self.eat_tick+=1
+    else
+     self.eat_tick=0
     end
    end
    if self.cd==0 and self.state<3 then
