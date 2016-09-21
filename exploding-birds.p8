@@ -1,7 +1,9 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
--- generic helpers (start here when you need to reduce token size)
+-- exploding birds
+-- by @aranasaurus
+--
 left=0
 right=1
 up=2
