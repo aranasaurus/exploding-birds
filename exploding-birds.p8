@@ -192,7 +192,7 @@ function make_bird()
    end
    if self.eat_tick==0 and abs(self.x-player.x)<=8 then
     -- +5 because the beak is never farther down than 5
-    if self.y+5>=player.y+player.rice_offset then
+    if self.y+5>=player.y+player.rice_offset and self.y<=player.y+4 then
      local bx=self.x+8
      if self.anim.dir==-1 then
       bx=self.x
@@ -375,14 +375,18 @@ function make_player()
 end
 
 -- game logic
+gs_start=0
+gs_main=1
+gs_over=2
+gs_over_post=3
 function set_game_state(state)
- if state==0 or state==1 then
+ if state==gs_start or state==gs_main then
   birds={}
   poops={}
   rice={}
   player=make_player()
  end
- if state==0 then
+ if state==gs_start then
   -- start screen
   clouds={
    start=60,
@@ -393,7 +397,7 @@ function set_game_state(state)
    local c=make_cloud(false,i%2==0,i>2)
    add(clouds,c)
   end
- elseif state==1 then
+ elseif state==gs_main then
   -- reset game entities and start game
   add(birds,make_bird())
   player.cd=15
@@ -401,7 +405,7 @@ function set_game_state(state)
  game_state=state
 end
 function _init()
- set_game_state(0)
+ set_game_state(gs_start)
 end
 --[[
 function _update()
@@ -410,26 +414,26 @@ function _update()
 end
 --]]
 function _update60()
- if game_state<2 then
+ if game_state<gs_over then
   for c in all(clouds) do
    c:update()
   end
  end
- if game_state==0 then
+ if game_state==gs_start then
   if btn(b_btn) or btn(a_btn) then
-   set_game_state(1)
+   set_game_state(gs_main)
   end
   return
- elseif game_state==2 then
+ elseif game_state==gs_over then
   -- wait until b btn has been released to enable it to reset the game
   -- player was likely holding it down at the end of the game
   if not btn(b_btn) then
-   set_game_state(3)
+   set_game_state(gs_over_post)
   end
   return
- elseif game_state==3 then
+ elseif game_state==gs_over_post then
   if btn(b_btn) or btn(a_btn) then
-   set_game_state(1)
+   set_game_state(gs_main)
   end
   return
  end
@@ -444,7 +448,7 @@ function _update60()
   add(birds,make_bird())
  end
  if player.rice<=0 and #rice==0 then
-  set_game_state(2)
+  set_game_state(gs_over)
  end
 end
 function _draw()
@@ -454,7 +458,7 @@ function _draw()
   c:draw()
  end
  rectfill(0,horizon,128,128,dark_green)
- if game_state==0 then
+ if game_state==gs_start then
   -- start screen
   return
  end
@@ -465,10 +469,10 @@ function _draw()
   b:draw()
  end
  player:draw()
- if game_state==1 then
+ if game_state==gs_main then
   color(dark_blue)
   print("score: " .. flr(0.5+player.score), 42, 1)
- elseif game_state>=2 then
+ elseif game_state>=gs_over then
   local win={x=16,y=32,c1=white,c2=dark_grey}
   win.w=128-(2*(win.x-1))
   win.h=128-(2*(win.y-1))
