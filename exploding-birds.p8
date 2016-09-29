@@ -378,7 +378,6 @@ end
 gs_start=0
 gs_main=1
 gs_over=2
-gs_over_post=3
 function set_game_state(state)
  if state==gs_start or state==gs_main then
   birds={}
@@ -400,7 +399,6 @@ function set_game_state(state)
  elseif state==gs_main then
   -- reset game entities and start game
   add(birds,make_bird())
-  player.cd=15
  end
  game_state=state
 end
@@ -413,26 +411,21 @@ function _update()
  _update60()
 end
 --]]
+f=0
 function _update60()
+ f=(f+1)%60
  if game_state<gs_over then
   for c in all(clouds) do
    c:update()
   end
  end
  if game_state==gs_start then
-  if btn(b_btn) or btn(a_btn) then
+  if btn(a_btn) then
    set_game_state(gs_main)
   end
   return
  elseif game_state==gs_over then
-  -- wait until b btn has been released to enable it to reset the game
-  -- player was likely holding it down at the end of the game
-  if not btn(b_btn) then
-   set_game_state(gs_over_post)
-  end
-  return
- elseif game_state==gs_over_post then
-  if btn(b_btn) or btn(a_btn) then
+  if btn(a_btn) then
    set_game_state(gs_main)
   end
   return
@@ -460,6 +453,10 @@ function _draw()
  rectfill(0,horizon,128,128,dark_green)
  if game_state==gs_start then
   -- start screen
+  if f < 40 then
+   print("press x to start", 34, 59, dark_red)
+   print("press x to start", 34, 58, red)
+  end
   return
  end
  for p in all(poops) do
@@ -471,7 +468,7 @@ function _draw()
  player:draw()
  if game_state==gs_main then
   color(dark_blue)
-  print("score: " .. flr(0.5+player.score), 42, 1)
+  print("rice: " .. player.rice, 42, 1)
  elseif game_state>=gs_over then
   local win={x=16,y=32,c1=white,c2=dark_grey}
   win.w=128-(2*(win.x-1))
@@ -499,8 +496,8 @@ function _draw()
   y+=7
   print("poops avoided      " .. player.poops_avoided, x, y)
 
-  print("press button to restart!", x-2, win.y+win.h-6, win.c2)
-  print("press button to restart!", x-2, win.y+win.h-7, win.c1)
+  print("press x to restart!", x+9, win.y+win.h-6, win.c2)
+  print("press x to restart!", x+9, win.y+win.h-7, win.c1)
  end
 end
 __gfx__
