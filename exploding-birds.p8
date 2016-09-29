@@ -453,7 +453,7 @@ function _draw()
  rectfill(0,horizon,128,128,dark_green)
  if game_state==gs_start then
   -- start screen
-  if f < 40 then
+  if f<=40 then
    print("press x to start", 34, 59, dark_red)
    print("press x to start", 34, 58, red)
   end
@@ -496,8 +496,10 @@ function _draw()
   y+=7
   print("poops avoided      " .. player.poops_avoided, x, y)
 
-  print("press x to restart!", x+9, win.y+win.h-6, win.c2)
-  print("press x to restart!", x+9, win.y+win.h-7, win.c1)
+  if f>=40 then
+   print("press x to restart!", x+9, win.y+win.h-6, win.c2)
+   print("press x to restart!", x+9, win.y+win.h-7, win.c1)
+  end
  end
 end
 __gfx__
